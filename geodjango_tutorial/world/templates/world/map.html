@@ -1,0 +1,88 @@
+{% extends 'world/base.html' %}
+
+{% block title %}Map{% endblock %}
+
+{% block content %}
+<h2>Your Location</h2>
+<div id="map" style="height: 600px;"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var map = L.map('map').setView([0, 0], 2);  // Initialize the map
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var marker;
+    var circle;
+
+    function updateMap(latitude, longitude, accuracy) {
+        if (marker) {
+            map.removeLayer(marker);
+        }
+        if (circle) {
+            map.removeLayer(circle);
+        }
+
+        marker = L.marker([latitude, longitude]).addTo(map);
+        circle = L.circle([latitude, longitude], { radius: accuracy }).addTo(map);
+        map.setView([latitude, longitude], 13);  // Zoom into the user's location
+    }
+
+    function updateLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    var accuracy = position.coords.accuracy;
+
+                    updateMap(latitude, longitude, accuracy);
+
+                    // Send location to Django view
+                    fetch('{% url "update_location" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': '{{ csrf_token }}'  // Include CSRF token
+                        },
+                        body: 'latitude=' + latitude + '&longitude=' + longitude
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Location updated successfully');
+                        } else {
+                            console.error('Error updating location:', data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                    });
+                },
+                function(error) {
+                    console.error('Error getting location:', error);
+                }
+            );
+        } else {
+            console.error('Geolocation is not supported by this browser.');
+        }
+    }
+
+    // On page load, update the location
+    document.addEventListener('DOMContentLoaded', function() {
+        updateLocation();
+
+        // Optionally, update location periodically
+        // setInterval(updateLocation, 60000);  // Update every 60 seconds
+    });
+
+    // If user has a saved location, display it
+    /*{% if location %}
+        updateMap({{ location.y|escapejs }}, {{ location.x|escapejs }}, 100);  // Adjust accuracy as needed
+    {% endif %}*/
+</script>
+{% endblock %}

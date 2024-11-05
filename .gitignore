@@ -1,0 +1,34 @@
+# Ignore secret_key.txt
+secret_key.txt
+
+# General system files
+*.DS_Store
+*.log
+
+# Python-specific files
+__pycache__/
+*.py[cod]
+*.pyo
+*.so
+*.egg-info/
+*.egg
+*.sqlite3
+
+# Environment files
+.env
+*.env
+
+# Byte-compiled Python files
+*.pyc
+*.pyo
+*.pyd
+
+# Backup and temporary files
+*.bak
+*.swp
+*.tmp
+
+# IDE specific files
+.idea/
+.vscode/
+*.iml
