@@ -51,6 +51,7 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'world.apps.WorldConfig',
+    'hospital'
 ]
 
 MIDDLEWARE = [

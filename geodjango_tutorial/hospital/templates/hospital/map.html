@@ -1,0 +1,92 @@
+{% extends 'hospital/base.html' %}
+
+{% block title %}Hospital Map{% endblock %}
+
+{% block content %}
+<h2>Hospitals Near You</h2>
+<div id="map" style="height: 600px;"></div>
+{% endblock %}
+
+{% block extra_js %}
+<script>
+    var map = L.map('map').setView([0, 0], 2);  // Initialize map at a global level
+
+    // Add OpenStreetMap tiles
+    L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+        attribution: '&copy; OpenStreetMap contributors'
+    }).addTo(map);
+
+    var userMarker;
+    var userCircle;
+
+    function updateUserLocation(latitude, longitude, accuracy) {
+        if (userMarker) {
+            map.removeLayer(userMarker);
+        }
+        if (userCircle) {
+            map.removeLayer(userCircle);
+        }
+
+        userMarker = L.marker([latitude, longitude], { color: 'blue' }).addTo(map);
+        userCircle = L.circle([latitude, longitude], { radius: accuracy, color: 'blue' }).addTo(map);
+        map.setView([latitude, longitude], 13);  // Zoom into user's location
+    }
+
+    function updateLocation() {
+        if (navigator.geolocation) {
+            navigator.geolocation.getCurrentPosition(
+                function(position) {
+                    var latitude = position.coords.latitude;
+                    var longitude = position.coords.longitude;
+                    var accuracy = position.coords.accuracy;
+
+                    updateUserLocation(latitude, longitude, accuracy);
+
+                    // Send location to Django view
+                    fetch('{% url "update_location" %}', {
+                        method: 'POST',
+                        headers: {
+                            'Content-Type': 'application/x-www-form-urlencoded',
+                            'X-CSRFToken': '{{ csrf_token }}'  // CSRF token for security
+                        },
+                        body: 'latitude=' + latitude + '&longitude=' + longitude
+                    })
+                    .then(response => response.json())
+                    .then(data => {
+                        if (data.success) {
+                            console.log('Location updated successfully');
+                        } else {
+                            console.error('Error updating location:', data.error);
+                        }
+                    })
+                    .catch(error => {
+                        console.error('Fetch error:', error);
+                    });
+                },
+                function(error) {
+                    console.error('Error getting location:', error);
+                }
+            );
+        } else {
+            console.error('Geolocation is not supported by this browser.');
+        }
+    }
+
+    // On page load, update the location
+    document.addEventListener('DOMContentLoaded', function() {
+        updateLocation();
+
+        // Parse the hospitals JSON data
+        var hospitals = JSON.parse('{{ hospitals|escapejs }}'); 
+
+        // Display each hospital as a marker on the map
+        hospitals.features.forEach(function(hospital) {
+            var coordinates = hospital.geometry.coordinates;
+            var properties = hospital.properties;
+            L.marker([coordinates[1], coordinates[0]])
+                .addTo(map)
+                .bindPopup('<strong>' + properties.name + '</strong><br>' + properties.address1 + '<br>' + properties.eircode);
+        });
+    });
+</script>
+{% endblock %}
