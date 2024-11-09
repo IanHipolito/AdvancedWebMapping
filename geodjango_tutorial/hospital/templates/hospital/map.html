@@ -16,6 +16,14 @@
         attribution: '&copy; OpenStreetMap contributors'
     }).addTo(map);
 
+    // Create and add the MiniMap
+    var miniMapLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+    var miniMap = new L.Control.MiniMap(miniMapLayer, {
+        position: 'bottomright',
+        toggleDisplay: true,
+        minimized: false
+    }).addTo(map);
+
     var userMarker;
     var userCircle;
 
