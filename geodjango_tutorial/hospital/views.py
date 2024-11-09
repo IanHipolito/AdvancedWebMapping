@@ -1,10 +1,12 @@
 from django.contrib.gis.geos import Point
 from django.http import JsonResponse
-from django.shortcuts import render, redirect
+from django.shortcuts import render, redirect, resolve_url
 from django.contrib.auth import get_user_model, login, logout, authenticate
 from django.contrib.auth.forms import AuthenticationForm
 from .models import Hospital, Profile
 from django.core.serializers import serialize
+from django.contrib.auth.models import User
+from .forms import SignupForm
 
 User = get_user_model()
 
@@ -19,6 +21,18 @@ def set_user_location(user_id, latitude, longitude):
 
     return profile
 
+def signup_view(request):
+    if request.method == 'POST':
+        form = SignupForm(request.POST)
+        if form.is_valid():
+            user = form.save(commit=False)
+            user.set_password(form.cleaned_data['password'])
+            user.save()
+            return redirect('hospital_login')  # Redirect to login page after signup
+    else:
+        form = SignupForm()
+    return render(request, 'hospital/signup.html', {'form': form})
+
 def login_view(request):
     if request.method == 'POST':
         form = AuthenticationForm(request, data=request.POST)
@@ -32,7 +46,7 @@ def login_view(request):
 
 def logout_view(request):
     logout(request)
-    return redirect('login')  # Redirect to the login page after logout
+    return redirect(resolve_url('hospital_login'))  # Redirect to the login page after logout
 
 def hospital_map_view(request):
     if request.user.is_authenticated:
@@ -50,7 +64,7 @@ def hospital_map_view(request):
             'hospitals': hospitals_json
         })
     else:
-        return redirect('login')
+        return redirect(resolve_url('hospital_login'))
     
 def update_location(request):
     if request.method == 'POST' and request.user.is_authenticated:
