@@ -15,13 +15,13 @@ Please sign up to create an account and login, this will bring you to "/hospital
 
 # Creating Docker Containers, Dockerising Containers, and Using AWS Cloud Services (Locally and Deployed):
 ## Steps For Local Setup Before Deployment:
-After creating the project app, I created an environment called ***awm_env*** and activated it using these commands:
+After creating the project app, I created an environment called **awm_env** and activated it using these commands:
 ```
 conda create -n awm_env python=3.12
 conda activate awm_env
 ```
 
-I then installed all the necessary libraries, configured my settings.py correctly, applied all the necesssary migrations, imported all the data, and created the ***static*** files here are some of the commands I used to do this:
+I then installed all the necessary libraries, configured my settings.py correctly, applied all the necesssary migrations, imported all the data, and created the **static** files here are some of the commands I used to do this:
 ```
 python manage.py makemigrations
 
@@ -48,21 +48,21 @@ I then created a **dockerfile** and a **docker-compose.yml** file. The dockerfil
 
 This file provides the instructions to build a Docker image for the Django application. It specifies the base image, installs necessary dependencies, copies application files, and defines commands to run the app. The Dockerfile ensures a consistent environment for the Django application, including specific libraries and configurations for deployment.
 
-### docker-Compose.yml File:
+### docker-compose.yml File:
 ![Screenshot 2024-11-09 215224](https://github.com/user-attachments/assets/46362d49-ab45-47b2-ae8e-0bc5bab6b660)
 
-This file defines the services, networks, and volumes needed to run the application in a Docker environment. It includes configurations for services like ***nginx***, ***pgadmin4***, ***postgis***, and the ***Django application***. Each service has specific settings such as ports, environment variables, and dependencies, which coordinate the entire application stack.
+This file defines the services, networks, and volumes needed to run the application in a Docker environment. It includes configurations for services like **nginx**, **pgadmin4**, **postgis**, and the **Django application**. Each service has specific settings such as ports, environment variables, and dependencies, which coordinate the entire application stack.
 
 These files together facilitate setting up and running the application within a Docker environment, enabling easy deployment and consistent behavior across different systems.
 
-I also created a file called ***default.conf*** which  contains the Nginx configuration for routing and handling HTTP requests for my application.
+I also created a file called **default.conf** which  contains the Nginx configuration for routing and handling HTTP requests for my application.
 
 ### default.conf File:
 ![Screenshot 2024-11-09 215705](https://github.com/user-attachments/assets/0a61f638-6297-4880-b7f8-c11ec1e8f6cf)
 
 This configuration ensures that Nginx correctly serves your Django application and static assets, handling incoming requests efficiently.
 
-I also created an ***ENV.yml*** file by running this command (made some modifications in the file):
+I also created an **ENV.yml** file by running this command (made some modifications in the file):
 ```
 conda env export --from-hisory > ENV.yml
 ```
@@ -96,25 +96,25 @@ docker push ianhipolito659/geodjango_tutorial_image:latest
 After pushing the latest version of the image to the docker repository, I created an instance using AWS cloud services and connected to it.
 
 ### Steps For AWS:
-After creating an ***EC2*** instance on AWS, I got the public IP address and created an ***A record*** configuration for the DNS of my domain (I manage my DNS configurations on my account on, here is the website link: https://www.godaddy.com/en-ie). I then started and connect to the instance. 
+After creating an **EC2** instance on AWS, I got the public IP address and created an **A record** configuration for the DNS of my domain (I manage my DNS configurations on my account on, here is the website link: https://www.godaddy.com/en-ie). I then started and connect to the instance. 
 
-* ***Step 1:*** After connecting, I created a docker network by running this command:
+* **Step 1:** After connecting, I created a docker network by running this command:
 ```
 docker network create wmap_network
 ```
 
-* ***Step 2:*** I created a ***dockerfile** using this command:
+* **Step 2:** I created a **dockerfile** using this command:
 ```
 sudo nano Dockerfile
 ```
 ![Screenshot 2024-11-10 041444](https://github.com/user-attachments/assets/184186a6-7681-4839-851e-ca2ca13bf4ef)
 
-* ***Step 3:*** I then pulled my django app image from my docker repository using this command:
+* **Step 3:** I then pulled my django app image from my docker repository using this command:
 ```
 docker pull ianhipolito659/geodjango_tutorial_image:latest
 ```
 
-* ***Step 4:*** After pulling the image, I created the four containers (***pgadmin**, ***postgis***, ***nginx***, and ***awm_django_app**) essential for deploying my web application, I then started all the containers, here are the commands I used:
+* **Step 4:** After pulling the image, I created the four containers (**pgadmin**, **postgis**, **nginx**, and **awm_django_app**) essential for deploying my web application, I then started all the containers, here are the commands I used:
 ```
 sudo docker create --name pgadmin4 --network wmap_network --network-alias pgadmin4 -t -v wmap_pgadmin_data:/var/lib/pgadmin -e 'PGADMIN_DEFAULT_EMAIL=c21436494@tudublin.ie' -e 'PGADMIN_DEFAULT_PASSWORD=password123' dpage/pgadmin4
 
@@ -131,14 +131,14 @@ docker start <container_id>
 ![Screenshot 2024-11-10 044154](https://github.com/user-attachments/assets/dd4e9ba9-899e-4041-81a0-fb1a261f21a6)
 
 
-* ***Step 5:*** I then used ***Certbot*** to get an SSL/TLS cert, this is a free, open source software tool for automatically using Let’s Encrypt certificates on manually-administrated websites to enable HTTPS, I did this by running these commands and entering the necessary information:
+* **Step 5:** I then used **Certbot** to get an SSL/TLS cert, this is a free, open source software tool for automatically using Let’s Encrypt certificates on manually-administrated websites to enable HTTPS, I did this by running these commands and entering the necessary information:
 ```
 docker exec -it nginx /bin/bash
 
 certbot certonly --nginx
 ```
 
-* ***Step 6:*** I then configured my ***Nginx Proxy*** by going into my nginx/conf directory (in AWS) and creating two files called ***headers.conf*** (used to define HTTP headers that Nginx will add to responses) and ***server.conf*** (contains the main server block configuration for Nginx, it defines how Nginx handles incoming requests), I used these commands to create the files:
+* **Step 6:** I then configured my **Nginx Proxy** by going into my nginx/conf directory (in AWS) and creating two files called **headers.conf** (used to define HTTP headers that Nginx will add to responses) and **server.conf** (contains the main server block configuration for Nginx, it defines how Nginx handles incoming requests), I used these commands to create the files:
 ```
 sudo nano headers.conf
 
@@ -151,7 +151,7 @@ sudo nano server.conf
 ## server.conf File:
 ![Screenshot 2024-11-10 044910](https://github.com/user-attachments/assets/fac320ba-d92f-4c9c-8a69-4b5589e945ea)
 
-* ***Step 7:*** After all these steps, I restarted all the containers and tested out my project:
+* **Step 7:** After all these steps, I restarted all the containers and tested out my project:
 ```
 docker retart <container_id>
 ```
@@ -186,7 +186,7 @@ docker retart <container_id>
 ## Django Admin Page:
 ![Screenshot 2024-11-10 050754](https://github.com/user-attachments/assets/f316a09b-2989-4cca-a97f-0624376877fa)
 
-## Django Admin Page Users (when a user signs up, they are stored in ***Users*** along with all the data and information they used to sign up with):
+## Django Admin Page Users (when a user signs up, they are stored in **Users** along with all the data and information they used to sign up with):
 ![Screenshot 2024-11-10 050829](https://github.com/user-attachments/assets/6219f229-8e40-4322-a761-5c46d092a274)
 
 ## Django Admin Page Hospital Spatial Data (where all the hospital data is stored, this is where I can create, modify and manpulate the hospital data):
