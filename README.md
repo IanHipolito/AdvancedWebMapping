@@ -192,4 +192,5 @@ docker retart <container_id>
 ## Django Admin Page Hospital Spatial Data (where all the hospital data is stored, this is where I can create, modify and manpulate the hospital data):
 ![Screenshot 2024-11-10 051230](https://github.com/user-attachments/assets/0ebac155-5e65-41a6-9e2c-9e83c922137a)
 
-
+# Conclusion
+In conclusion, this Advanced Web Mapping project successfully demonstrates a robust integration of Django with spatial data management and Docker-based deployment, enabling users to interact with geographic data through a dynamic application. By incorporating user authentication, geolocation features, and interactive maps powered by Leaflet, the project provides a solution for locating hospitals across Ireland. The app's user experience is supported by Docker and AWS, ensuring a stable and scalable deployment process. 
