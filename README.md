@@ -15,7 +15,7 @@ Please sign up to create an account and login, this will bring you to "/hospital
 
 # Creating Docker Containers, Dockerising Containers, and Using AWS Cloud Services (Locally and Deployed):
 ## Steps For Local Setup Before Deployment:
-After creating the project app, I created an environment called ***awm_env** and activated it using these commands:
+After creating the project app, I created an environment called ***awm_env*** and activated it using these commands:
 ```
 conda create -n awm_env python=3.12
 conda activate awm_env
