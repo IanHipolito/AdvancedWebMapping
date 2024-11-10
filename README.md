@@ -55,7 +55,7 @@ This file defines the services, networks, and volumes needed to run the applicat
 
 These files together facilitate setting up and running the application within a Docker environment, enabling easy deployment and consistent behavior across different systems.
 
-I also created a file called ***default.conf** which  contains the Nginx configuration for routing and handling HTTP requests for my application.
+I also created a file called ***default.conf*** which  contains the Nginx configuration for routing and handling HTTP requests for my application.
 
 ### default.conf File:
 ![Screenshot 2024-11-09 215705](https://github.com/user-attachments/assets/0a61f638-6297-4880-b7f8-c11ec1e8f6cf)
