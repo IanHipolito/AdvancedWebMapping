@@ -11,6 +11,14 @@ In this readme I will discuss and break down of my advanced web mapping CA 1 pro
 * **Interactive Map:** Utilises Leaflet for map rendering with markers for hospitals and user location.
 * **Creating, Manipulating and Storing Spatial Data:** I am able to create, manipulate, and store data in my django admin page.
 
+# Tech Stack
+* Backend: Django with Django Templates to handle server-side logic and templating.
+* Database: PostgreSQL with PostGIS for storing and managing geospatial data.
+* Database Management: PgAdmin 4 for database management and monitoring.
+* Mapping: Leaflet JS and OpenStreetMap for displaying interactive maps with precise user location tracking.
+* Frontend: Leaflet and custom JavaScript to improve user interaction with the map.
+* Containerization & Deployment: Docker for application containerisation and AWS for hosting.
+
 Please sign up to create an account and login, this will bring you to "/hospital/map/" where you will be able to see where all the hospitals in Ireland are located.
 
 # Creating Docker Containers, Dockerising Containers, and Using AWS Cloud Services (Locally and Deployed):
@@ -193,4 +201,11 @@ docker retart <container_id>
 ![Screenshot 2024-11-10 051230](https://github.com/user-attachments/assets/0ebac155-5e65-41a6-9e2c-9e83c922137a)
 
 # Conclusion
-In conclusion, this Advanced Web Mapping project successfully demonstrates a robust integration of Django with spatial data management and Docker-based deployment, enabling users to interact with geographic data through a dynamic application. By incorporating user authentication, geolocation features, and interactive maps powered by Leaflet, the project provides a solution for locating hospitals across Ireland. The app's user experience is supported by Docker and AWS, ensuring a stable and scalable deployment process. 
+In conclusion, this Advanced Web Mapping CA1 successfully demonstrates a robust integration of Django with spatial data management and Docker-based deployment, enabling users to interact with geographic data through a dynamic application. By incorporating user authentication, geolocation features, and interactive maps powered by Leaflet, the project provides a solution for locating hospitals across Ireland. The app's user experience is supported by Docker and AWS, ensuring a stable and scalable deployment process. 
+
+# Future Implementations For AWM CA2
+* Add nearest hospital and fastest route (Directions and Travel Modes).
+* Update database tables with Users current and previous locations.
+* Styling of pages.
+* Filtering and Search Enhancements.
+* User-reported data to allow users to submit feedback on hospitals or report inaccurate location data.
