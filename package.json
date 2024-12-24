@@ -1,0 +1,14 @@
+{
+  "devDependencies": {
+    "@types/jest": "^29.5.14",
+    "@types/leaflet": "^1.9.15",
+    "@types/leaflet.markercluster": "^1.5.5"
+  },
+  "dependencies": {
+    "leaflet": "^1.9.4",
+    "leaflet-minimap": "^3.6.1",
+    "leaflet.markercluster": "^1.5.3",
+    "react-router-dom": "^6.28.1",
+    "web-vitals": "^4.2.4"
+  }
+}

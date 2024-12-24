@@ -20,4 +20,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('', include('world.urls')),  # Include your app's URLs
     path('hospital/', include('hospital.urls')),
+    # path("api/v1/", include('hospital.urls')),
 ]
