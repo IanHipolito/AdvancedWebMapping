@@ -1,77 +1,108 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Axios from '../services/Axios';
+
+interface AxiosError {
+    message: string;
+    response?: {
+      data: any;
+      status: number;
+    };
+}
+
+interface ErrorResponse {
+    error: string;
+}
 
 const Signup: React.FC = () => {
-  const [username, setUsername] = useState('');
-  const [password, setPassword] = useState('');
-  const [confirmPassword, setConfirmPassword] = useState('');
-  const [error, setError] = useState('');
-  const navigate = useNavigate();
+    const [formData, setFormData] = useState({
+        username: '',
+        email: '',
+        password: '',
+        confirm_password: '',
+    });
+    const [error, setError] = useState('');
+    const [success, setSuccess] = useState('');
+    const navigate = useNavigate();
 
-  const handleSignup = async (e: React.FormEvent) => {
-    e.preventDefault();
+    const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+        setFormData({ ...formData, [e.target.name]: e.target.value });
+    };
 
-    if (password !== confirmPassword) {
-      setError('Passwords do not match.');
-      return;
-    }
+    const handleSubmit = async (e: React.FormEvent) => {
+        e.preventDefault();
+        if (formData.password !== formData.confirm_password) {
+            setError('Passwords do not match.');
+            return;
+        }
+        try {
+            await Axios.post('/signup/', {
+                username: formData.username,
+                email: formData.email,
+                password: formData.password,
+                confirm_password: formData.confirm_password,
+            });
+            setSuccess('Registration successful! Redirecting...');
+            setTimeout(() => navigate('/login'), 2000);
+        } catch (error) {
+            const err = error as AxiosError;
+            setError(err.response?.data.error || 'Registration failed.');
+        }
+    };
 
-    try {
-      const response = await fetch('http://localhost:8001/hospital/signup/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          username,
-          password,
-        }),
-      });
-
-      if (response.ok) {
-        navigate('/login'); // Redirect to login page
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Signup failed. Please try again.');
-      }
-    } catch (error) {
-      setError('An error occurred. Please try again later.');
-    }
-  };
-
-  return (
-    <div className="signup-container">
-      <h2>Sign Up</h2>
-      {error && <p className="error">{error}</p>}
-      <form onSubmit={handleSignup}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Confirm Password"
-          value={confirmPassword}
-          onChange={(e) => setConfirmPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Sign Up</button>
-      </form>
-      <p>
-        Already have an account? <a href="/login">Login</a>
-      </p>
-    </div>
-  );
+    return (
+        <div className="auth-container">
+            <form onSubmit={handleSubmit} className="auth-form">
+                <h2>Create Your <span className="highlight">Event Hub</span> Account</h2>
+                {error && <p className="error-message">{error}</p>}
+                {success && <p className="success-message">{success}</p>}
+                <div className="form-group">
+                    <label>Username</label>
+                    <input
+                        type="text"
+                        name="username"
+                        value={formData.username}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Email</label>
+                    <input
+                        type="email"
+                        name="email"
+                        value={formData.email}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Password</label>
+                    <input
+                        type="password"
+                        name="password"
+                        value={formData.password}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+                <div className="form-group">
+                    <label>Confirm Password</label>
+                    <input
+                        type="password"
+                        name="confirm_password"
+                        value={formData.confirm_password}
+                        onChange={handleChange}
+                        required
+                    />
+                </div>
+                <button type="submit" className="auth-button">Register</button>
+                <p className="redirect-link">
+                    Already have an account? <a href="/login">Login here</a>
+                </p>
+            </form>
+        </div>
+    );
 };
 
 export default Signup;

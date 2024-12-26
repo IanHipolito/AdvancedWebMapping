@@ -1,5 +1,10 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import Axios from '../services/Axios';
+
+interface LoginResponse {
+    token: string;
+  }
 
 const Login: React.FC = () => {
   const [username, setUsername] = useState('');
@@ -7,56 +12,54 @@ const Login: React.FC = () => {
   const [error, setError] = useState('');
   const navigate = useNavigate();
 
-  const handleLogin = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-
+  
     try {
-      const response = await fetch('http://localhost:8001/hospital/login/', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/x-www-form-urlencoded',
-        },
-        body: new URLSearchParams({
-          username,
-          password,
-        }),
+      // Tell Axios the expected response type is LoginResponse
+      const response = await Axios.post<LoginResponse>('/login/', {
+        username,
+        password,
       });
-
-      if (response.ok) {
-        navigate('/map'); // Redirect to map page
-      } else {
-        const data = await response.json();
-        setError(data.error || 'Login failed. Please try again.');
-      }
-    } catch (error) {
-      setError('An error occurred. Please try again later.');
+  
+      // Now TypeScript knows response.data has 'token'
+      const token = response.data.token;
+      localStorage.setItem('token', token);
+      navigate('/map'); // Redirect to map page
+    } catch (err: any) {
+      console.error('Error:', err.response?.data || err.message);
+      setError('Invalid credentials or server error.');
     }
   };
-
+  
   return (
-    <div className="login-container">
-      <h2>Login</h2>
-      {error && <p className="error">{error}</p>}
-      <form onSubmit={handleLogin}>
-        <input
-          type="text"
-          placeholder="Username"
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          required
-        />
-        <input
-          type="password"
-          placeholder="Password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          required
-        />
-        <button type="submit">Login</button>
+    <div className="auth-container">
+      <form onSubmit={handleSubmit} className="auth-form">
+        <h2>Login to <span className="highlight">Hospital Tracker</span></h2>
+        {error && <p className="error-message">{error}</p>}
+        <div className="form-group">
+          <label>Username</label>
+          <input
+            type="text"
+            value={username}
+            onChange={(e) => setUsername(e.target.value)}
+            required
+          />
+        </div>
+        <div className="form-group">
+          <label>Password</label>
+          <input
+            type="password"
+            value={password}
+            onChange={(e) => setPassword(e.target.value)}
+            required
+          />
+        </div>
+        <button type="submit" className="auth-button">Login</button>
+        <p className="redirect-link">
+          Don't have an account? <a href="/signup">Signup here</a>
+        </p>
       </form>
-      <p>
-        Don't have an account? <a href="/signup">Sign Up</a>
-      </p>
     </div>
   );
 };

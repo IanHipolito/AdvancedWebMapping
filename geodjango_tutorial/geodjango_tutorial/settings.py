@@ -55,6 +55,7 @@ INSTALLED_APPS = [
     'hospital',
     'rest_framework',
     'rest_framework_gis',
+    'knox',
 ]
 
 MIDDLEWARE = [
@@ -73,7 +74,14 @@ CORS_ALLOW_ALL_ORIGINS = True
 
 CORS_ALLOWED_ORIGINS = [
     "http://localhost:3000",
+    "http://127.0.0.1:8001",
 ]
+
+REST_FRAMEWORK = {
+    'DEFAULT_AUTHENTICATION_CLASSES': [
+        'knox.auth.TokenAuthentication',  # Added Knox Authentication
+    ]
+}
 
 ROOT_URLCONF = 'geodjango_tutorial.urls'
 
