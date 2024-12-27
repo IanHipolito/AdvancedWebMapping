@@ -1,6 +1,7 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Axios from '../services/Axios';
+import '../styles/stylesheet.css';
 
 interface AxiosError {
     message: string;
@@ -56,7 +57,7 @@ const Signup: React.FC = () => {
     return (
         <div className="auth-container">
             <form onSubmit={handleSubmit} className="auth-form">
-                <h2>Create Your <span className="highlight">Event Hub</span> Account</h2>
+                <h2>Create Your <span className="highlight">Hospital Locator</span> Account</h2>
                 {error && <p className="error-message">{error}</p>}
                 {success && <p className="success-message">{success}</p>}
                 <div className="form-group">

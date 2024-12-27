@@ -1,10 +1,8 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Axios from '../services/Axios';
+import '../styles/stylesheet.css';
 
-// interface LoginResponse {
-//     token: string;
-// }
 
 const Login: React.FC = () => {
     const [username, setUsername] = useState('');
@@ -16,7 +14,7 @@ const Login: React.FC = () => {
         e.preventDefault();
 
         try {
-            const response = await Axios.post('login/', { username, password });
+            const response = await Axios.post('/login/', { username, password });
             console.log(response);
             const token = response.data.token;
         

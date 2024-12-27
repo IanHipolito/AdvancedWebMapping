@@ -52,6 +52,7 @@ INSTALLED_APPS = [
     'django.contrib.gis',
     'world.apps.WorldConfig',
     'rest_framework',
+    'rest_framework.authtoken',
     'corsheaders',
     'hospital',
     # 'rest_framework_gis',

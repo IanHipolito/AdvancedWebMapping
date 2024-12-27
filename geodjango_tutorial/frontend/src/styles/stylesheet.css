@@ -1,0 +1,201 @@
+/* Login and Signup Page Styles */
+
+.auth-container {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    height: 100vh;
+    background-color: #f0f2f5;
+}
+
+.auth-form {
+    background: #ffffff;
+    padding: 2rem;
+    border-radius: 8px;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    width: 100%;
+    max-width: 400px;
+}
+
+.auth-form h2 {
+    text-align: center;
+    margin-bottom: 1.5rem;
+    color: #333;
+}
+
+.auth-form h2 .highlight {
+    color: #4caf50;
+}
+
+.error-message {
+    color: #d9534f;
+    background-color: #f2dede;
+    padding: 0.5rem;
+    border-radius: 4px;
+    margin-bottom: 1rem;
+    text-align: center;
+}
+
+.form-group {
+    margin-bottom: 1rem;
+}
+
+.form-group label {
+    display: block;
+    margin-bottom: 0.5rem;
+    color: #555;
+}
+
+.form-group input {
+    width: 100%;
+    padding: 0.5rem;
+    border: 1px solid #ccc;
+    border-radius: 4px;
+    font-size: 1rem;
+}
+
+.auth-button {
+    width: 100%;
+    padding: 0.75rem;
+    background-color: #4caf50;
+    color: #ffffff;
+    border: none;
+    border-radius: 4px;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: background-color 0.3s ease;
+}
+
+.auth-button:hover {
+    background-color: #45a049;
+}
+
+.redirect-link {
+    text-align: center;
+    margin-top: 1rem;
+    font-size: 0.9rem;
+}
+
+.redirect-link a {
+    color: #4caf50;
+    text-decoration: none;
+}
+
+.redirect-link a:hover {
+    text-decoration: underline;
+}
+
+/* Map Page Styles */
+
+/* Navbar styling */
+.navbar {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 15px 20px;
+    background: linear-gradient(135deg, #43a047 0%, #66bb6a 100%);
+    color: #fff;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+}
+
+.navbar div {
+    font-size: 1.8rem;
+    font-weight: bold;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    color: #000; /* Changed to black */
+}
+
+.navbar button {
+    background-color: #ef4444;
+    color: #fff;
+    border: none;
+    padding: 10px 20px;
+    border-radius: 25px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    font-weight: bold;
+}
+
+.navbar button:hover {
+    background-color: #dc2626;
+    transform: scale(1.05);
+}
+
+/* Search bar styling */
+.search-bar {
+    margin: 10px 20px;
+    padding: 12px 16px;
+    width: calc(100% - 40px);
+    border: none;
+    border-radius: 25px;
+    font-size: 1rem;
+    box-shadow: 0 4px 6px rgba(0, 0, 0, 0.1);
+    outline: none;
+    transition: box-shadow 0.3s ease;
+}
+
+.search-bar:focus {
+    box-shadow: 0 6px 10px rgba(0, 0, 0, 0.2);
+}
+
+/* Map container styling */
+.map-container {
+    height: 600px;
+    width: 100%;
+    border: 1px solid #ddd;
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+/* Popup button styling */
+.popup-button {
+    margin-top: 10px;
+    padding: 8px 12px;
+    background-color: #4caf50;
+    color: #fff;
+    border: none;
+    border-radius: 5px;
+    cursor: pointer;
+    transition: background-color 0.3s;
+}
+
+.popup-button:hover {
+    background-color: #45a049;
+}
+
+/* General utility classes */
+.text-center {
+    text-align: center;
+}
+
+.margin-top {
+    margin-top: 10px;
+}
+
+/* Global Reset */
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+}
+
+html, body {
+    height: 100%;
+    overflow: hidden; /* Prevent scrolling */
+}
+
+body {
+    font-family: Arial, sans-serif; /* Adjust font family if needed */
+}
+
+/* Ensure parent container takes full height */
+#root, #app {
+    height: 100%;
+}
+
+/* Prevent any unwanted scrollbars */
+.container {
+    height: 100vh;
+    overflow: hidden;
+}

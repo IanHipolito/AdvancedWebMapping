@@ -12,7 +12,8 @@ import 'leaflet-minimap/dist/Control.MiniMap.min.css';
 import 'leaflet-routing-machine';
 import 'leaflet-routing-machine/dist/leaflet-routing-machine.css';
 import Axios from '../services/Axios';
-import axios, { AxiosError } from 'axios';
+import axios from 'axios';
+import '../styles/stylesheet.css';
 
 // Extend L.Control to include MiniMap
 declare module 'leaflet' {
@@ -40,11 +41,6 @@ interface Hospital {
   };
 }
 
-// interface HospitalResponse {
-//   type: string;
-//   features: Hospital[];
-// }
-
 const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -54,6 +50,7 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
   const routingControlRef = useRef<L.Routing.Control | null>(null);
   const userMarkerRef = useRef<L.Marker | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
+  const [loading, setLoading] = useState(false);
   const navigate = useNavigate();
 
   const customIcon = L.icon({
@@ -71,43 +68,40 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
     iconAnchor: [12, 41],
   });
 
+  const fitMapBounds = (data: Hospital[]) => {
+    if (!mapRef.current) return;
+    const bounds = L.latLngBounds([]);
+    data.forEach((hospital) => {
+      const coordinates = hospital.geometry.coordinates;
+      bounds.extend([coordinates[1], coordinates[0]]);
+    });
+    if (bounds.isValid()) mapRef.current.fitBounds(bounds, { padding: [20, 20] });
+  };
+
   const renderMarkers = (data: Hospital[]) => {
     if (!mapRef.current) return;
+    if (markersRef.current) markersRef.current.clearLayers();
+    else markersRef.current = L.markerClusterGroup();
 
-    if (markersRef.current) {
-      markersRef.current.clearLayers();
-    } else {
-      markersRef.current = L.markerClusterGroup(); // Create cluster group
-    }
-
-    data.forEach((hospital: Hospital) => {
+    data.forEach((hospital) => {
       const coordinates = hospital.geometry.coordinates;
-
-      // Defensive check for valid coordinates
-      if (!coordinates || coordinates.length < 2) {
-        console.error('Invalid coordinates for hospital:', hospital);
-        return;
-      }
-
       const { name, address1, eircode } = hospital.properties;
-
-      // Create marker
-      const marker = L.marker([coordinates[1], coordinates[0]], { icon: customIcon, draggable: false });
-
+      const marker = L.marker([coordinates[1], coordinates[0]], { icon: customIcon });
       const popupContent = `
-            <div>
-                <strong>${name}</strong><br>
-                ${address1}<br>
-                ${eircode}<br><br>
-                <button id="route-btn-${name.replace(/\s+/g, '-')}">Get Route</button>
-            </div>
-        `;
-      marker.bindPopup(popupContent);
-      markersRef.current?.addLayer(marker); // Add marker to cluster group
+        <div>
+          <strong>${name}</strong><br>
+          ${address1}<br>
+          ${eircode}<br><br>
+          <button id="route-btn-${name.replace(/\s+/g, '-')}">Get Route</button>
+        </div>
+      `;
 
-      // Add route functionality
+      marker.bindPopup(popupContent);
+      markersRef.current?.addLayer(marker);
+
       marker.on('popupopen', () => {
         const routeButton = document.getElementById(`route-btn-${name.replace(/\s+/g, '-')}`);
+
         if (routeButton) {
           routeButton.addEventListener('click', () => {
             if (navigator.geolocation) {
@@ -116,17 +110,15 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
                   const userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
                   const hospitalLatLng = L.latLng(coordinates[1], coordinates[0]);
 
-                  // Clear previous route if exists
                   if (routingControlRef.current) {
                     routingControlRef.current.getPlan().setWaypoints([]);
                     mapRef.current?.removeControl(routingControlRef.current);
                     routingControlRef.current = null;
                   }
 
-                  // Create new route
                   routingControlRef.current = L.Routing.control({
                     waypoints: [userLatLng, hospitalLatLng],
-                    routeWhileDragging: true,
+                    routeWhileDragging: false,
                     fitSelectedRoutes: true,
                     show: true,
                     createMarker: () => null,
@@ -136,14 +128,13 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
                   } as L.Routing.RoutingControlOptions).addTo(mapRef.current!);
 
                   routingControlRef.current.on('routesfound', (e: any) => {
-                    const route = e.routes[0];
-                    const distance = (route.summary.totalDistance / 1000).toFixed(2);
-                    const time = (route.summary.totalTime / 60).toFixed(0);
-                    alert(`Distance: ${distance} km\nTime: ${time} mins`);
+                    const routes = e.routes[0];
+                    const distance = (routes.summary.totalDistance / 1000).toFixed(2);
+                    const time = (routes.summary.totalTime / 60).toFixed(0);
                   });
 
                   routingControlRef.current.on('routingerror', () => {
-                    alert('Failed to calculate route.');
+                    alert('Failed to calculate route. Please try again.');
                   });
                 },
                 () => alert('Failed to retrieve user location.'),
@@ -155,13 +146,15 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
           });
         }
       });
+
+      markersRef.current?.addLayer(marker);
     });
 
-    // Add cluster group to the map
     mapRef.current!.addLayer(markersRef.current!);
   };
 
   const fetchHospitals = async () => {
+    setLoading(true);
     try {
       const response = await Axios.get('/api/hospitals/');
       console.log('API Response:', response.data);
@@ -173,6 +166,7 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
         setHospitals(features); // Update state
         setFilteredHospitals(features);
         renderMarkers(features); // Render markers
+
       } else {
         console.error('Invalid data format:', response.data);
       }
@@ -206,6 +200,7 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
     // Update the filtered hospitals and re-render markers
     setFilteredHospitals(filtered);
     renderMarkers(filtered);
+    fitMapBounds(filtered);
   };
 
   const handleLogout = () => {
@@ -244,18 +239,18 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
 
   return (
     <div>
-      <nav style={{ display: 'flex', justifyContent: 'space-between', padding: '10px', background: '#333', color: '#fff' }}>
+      <nav className="navbar">
         <div>Hospital Locator</div>
-        <button onClick={handleLogout} style={{ background: '#ff4d4d', color: '#fff', border: 'none', padding: '10px' }}>Logout</button>
+        <button onClick={handleLogout}>Logout</button>
       </nav>
       <input
         type="text"
         placeholder="Search hospitals..."
-        style={{ marginBottom: '10px', padding: '8px', width: '100%' }}
+        className="search-bar"
         value={searchQuery}
         onChange={(e) => handleSearch(e.target.value)}
       />
-      <div ref={mapContainerRef} id="map" style={{ height: '600px' }}></div>
+      <div ref={mapContainerRef} id="map" className="map-container"></div>
     </div>
   );
 };
