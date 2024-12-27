@@ -51,37 +51,54 @@ INSTALLED_APPS = [
     'django.contrib.staticfiles',
     'django.contrib.gis',
     'world.apps.WorldConfig',
+    'rest_framework',
     'corsheaders',
     'hospital',
-    'rest_framework',
-    'rest_framework_gis',
+    # 'rest_framework_gis',
     'knox',
 ]
 
 MIDDLEWARE = [
+    'geodjango_tutorial.middleware.TestCORSMiddleware',
+    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.security.SecurityMiddleware',
     'whitenoise.middleware.WhiteNoiseMiddleware',
     'django.contrib.sessions.middleware.SessionMiddleware',
-    'corsheaders.middleware.CorsMiddleware',
     'django.middleware.common.CommonMiddleware',
-    'django.middleware.csrf.CsrfViewMiddleware',
     'django.contrib.auth.middleware.AuthenticationMiddleware',
     'django.contrib.messages.middleware.MessageMiddleware',
     'django.middleware.clickjacking.XFrameOptionsMiddleware',
 ]
 
-CORS_ALLOW_ALL_ORIGINS = True
+# CORS_ALLOW_ALL_ORIGINS = True
 
-CORS_ALLOWED_ORIGINS = [
-    "http://localhost:3000",
-    "http://127.0.0.1:8001",
-]
+# CORS_ALLOWED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+#     "http://localhost:8001",
+#     "http://127.0.0.1:8001",
+#     "https://c21436494.xyz",
+# ]
 
+# CORS_TRUSTED_ORIGINS = [
+#     "http://localhost:3000",
+#     "http://127.0.0.1:3000",
+#     "http://localhost:8001",
+#     "http://127.0.0.1:8001",
+#     "https://c21436494.xyz",
+# ]
+
+# REST Framework configuration
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': [
-        'knox.auth.TokenAuthentication',  # Added Knox Authentication
-    ]
+        'knox.auth.TokenAuthentication',  # Knox token authentication
+        'rest_framework.authentication.BasicAuthentication',  # Optional
+    ],
+    'DEFAULT_PERMISSION_CLASSES': [
+        'rest_framework.permissions.IsAuthenticated',  # Require authentication by default
+    ],
 }
+
 
 ROOT_URLCONF = 'geodjango_tutorial.urls'
 
@@ -175,12 +192,7 @@ if DEPLOY_SECURE:
     # Allow only specified hosts in production
     ALLOWED_HOSTS = ['*.c21436494.xyz', 'c21436494.xyz', 'localhost', '127.0.0.1']
     
-
-    CSRF_COOKIE_SECURE = True
-
-    SESSION_COOKIE_SECURE = True
-    # Specify trusted origin for CSRF checks
-    CSRF_TRUSTED_ORIGINS = ['https://c21436494.xyz']
+    CORS_ALLOWED_ORIGINS = ['https://c21436494.xyz']
 else:
 
     DEBUG = True
@@ -190,9 +202,8 @@ else:
     # Allow all hosts in development
     ALLOWED_HOSTS = ['localhost', '127.0.0.1', '0.0.0.0']
 
-    CSRF_COOKIE_SECURE = False
-
-    SESSION_COOKIE_SECURE = False
+    # Allow all origins during development
+    CORS_ALLOWED_ALL_ORIGINS = True
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/5.1/ref/settings/#default-auto-field

@@ -47,7 +47,6 @@
   },
   "devDependencies": {
     "@testing-library/jest-dom": "^6.6.3",
-    "@types/axios": "^0.9.36",
     "@types/jest": "^29.5.14",
     "@types/leaflet.markercluster": "^1.5.5",
     "@types/react-leaflet": "^2.8.3",

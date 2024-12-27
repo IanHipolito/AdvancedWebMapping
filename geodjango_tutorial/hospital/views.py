@@ -188,12 +188,27 @@ from knox.auth import TokenAuthentication
 from knox.models import AuthToken
 from .models import Hospital, Profile
 from rest_framework import generics
-from .models import Hospital
 from .serializers import HospitalSerializer
+from rest_framework.permissions import IsAuthenticated
+from rest_framework.views import APIView
+import logging
+logger = logging.getLogger(__name__)
 
-class HospitalListAPIView(generics.ListAPIView):
-    queryset = Hospital.objects.all()
-    serializer_class = HospitalSerializer
+class HospitalListAPIView(APIView):
+    permission_classes = [IsAuthenticated]  # Ensure token authentication
+
+    def get(self, request, *args, **kwargs):
+        # Fetch hospital data
+        hospitals = Hospital.objects.all()
+        serializer = HospitalSerializer(hospitals, many=True)
+
+        # Wrap the features in a FeatureCollection
+        geojson_response = {
+            "type": "FeatureCollection",
+            "features": serializer.data
+        }
+
+        return Response(geojson_response)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -201,13 +216,16 @@ def login_view(request):
     """
     Knox-based API endpoint for user login.
     """
+    logger.info(f"Login attempt: {request.data}")
     username = request.data.get('username')
     password = request.data.get('password')
 
     user = authenticate(username=username, password=password)
     if user:
         token = AuthToken.objects.create(user)[1]
+        logger.info(f"Login success for {username}")
         return Response({"success": "Logged in successfully", "token": token}, status=200)
+    logger.warning(f"Failed login attempt for {username}")
     return Response({"error": "Invalid username or password"}, status=401)
 
 

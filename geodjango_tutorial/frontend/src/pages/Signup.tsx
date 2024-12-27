@@ -46,7 +46,10 @@ const Signup: React.FC = () => {
             setTimeout(() => navigate('/login'), 2000);
         } catch (error) {
             const err = error as AxiosError;
-            setError(err.response?.data.error || 'Registration failed.');
+            setError(Array.isArray(err.response?.data.error) 
+                ? err.response?.data.error.join(', ') 
+                : err.response?.data.error || 'Registration failed.');
+
         }
     };
 
