@@ -199,3 +199,24 @@ body {
     height: 100vh;
     overflow: hidden;
 }
+
+.map-container {
+    height: 80vh;
+    width: 100%;
+  }
+  
+  @media (max-width: 768px) {
+    .map-container {
+      height: 70vh;
+    }
+  
+    .search-bar {
+      width: 90%;
+      margin: 10px auto;
+    }
+  
+    .navbar {
+      padding: 10px;
+    }
+  }
+  

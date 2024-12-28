@@ -41,6 +41,11 @@ interface Hospital {
   };
 }
 
+interface LocationData {
+  latitude: number;
+  longitude: number;
+}
+
 const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
@@ -51,6 +56,7 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
   const userMarkerRef = useRef<L.Marker | null>(null);
   const [searchQuery, setSearchQuery] = useState<string>('');
   const [loading, setLoading] = useState(false);
+  const [showBookmarksOnly, setShowBookmarksOnly] = useState(false);
   const navigate = useNavigate();
 
   const customIcon = L.icon({
@@ -62,11 +68,44 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
     shadowSize: [41, 41],
   });
 
+  const bookmarkedIcon = L.icon({
+    iconUrl: markerIcon,
+    shadowUrl: markerShadow,
+    iconSize: [25, 41],
+    iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
+  });
+
   const userIcon = L.icon({
     iconUrl: 'https://cdn2.iconfinder.com/data/icons/map-and-navigation-12/48/53-512.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
   });
+
+  const [bookmarks, setBookmarks] = useState<string[]>(() => {
+    // Retrieve bookmarks from localStorage if available
+    const savedBookmarks = localStorage.getItem('bookmarks');
+    return savedBookmarks ? JSON.parse(savedBookmarks) : [];
+  });
+
+  const toggleBookmark = (hospitalName: string) => {
+    setBookmarks((prevBookmarks) => {
+      let updatedBookmarks;
+
+      if (prevBookmarks.includes(hospitalName)) {
+        // Remove bookmark
+        updatedBookmarks = prevBookmarks.filter((name) => name !== hospitalName);
+      } else {
+        // Add bookmark
+        updatedBookmarks = [...prevBookmarks, hospitalName];
+      }
+
+      // Update localStorage
+      localStorage.setItem('bookmarks', JSON.stringify(updatedBookmarks));
+      return updatedBookmarks; // Update state
+    });
+  };
 
   const fitMapBounds = (data: Hospital[]) => {
     if (!mapRef.current) return;
@@ -86,18 +125,37 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
     data.forEach((hospital) => {
       const coordinates = hospital.geometry.coordinates;
       const { name, address1, eircode } = hospital.properties;
-      const marker = L.marker([coordinates[1], coordinates[0]], { icon: customIcon });
-      const popupContent = `
-        <div>
-          <strong>${name}</strong><br>
-          ${address1}<br>
-          ${eircode}<br><br>
-          <button id="route-btn-${name.replace(/\s+/g, '-')}">Get Route</button>
-        </div>
-      `;
+      const isBookmarked = bookmarks.includes(name);
 
-      marker.bindPopup(popupContent);
+      const marker = L.marker([coordinates[1], coordinates[0]], {
+        icon: isBookmarked ? bookmarkedIcon : customIcon,
+      });
+
+      const createPopupContent = () => `
+      <div>
+        <strong>${name}</strong><br>
+        ${address1}<br>
+        ${eircode}<br><br>
+        <button id="route-btn-${name.replace(/\s+/g, '-')}">Get Route</button>
+        <button id="bookmark-btn-${name.replace(/\s+/g, '-')}">
+          ${isBookmarked ? 'Remove Bookmark' : 'Bookmark'}
+        </button>
+      </div>
+    `;
+      marker.bindPopup(createPopupContent);
       markersRef.current?.addLayer(marker);
+
+      marker.on('popupopen', () => {
+        const bookmarkButton = document.getElementById(`bookmark-btn-${name.replace(/\s+/g, '-')}`);
+
+        if (bookmarkButton) {
+          bookmarkButton.addEventListener('click', () => {
+            toggleBookmark(name);
+            // Update popup content dynamically without closing it
+            renderMarkers(data);
+          });
+        }
+      });
 
       marker.on('popupopen', () => {
         const routeButton = document.getElementById(`route-btn-${name.replace(/\s+/g, '-')}`);
@@ -162,7 +220,6 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
       // Check for valid GeoJSON format
       if (response.data.type === "FeatureCollection") {
         const features = response.data.features; // Extract features
-
         setHospitals(features); // Update state
         setFilteredHospitals(features);
         renderMarkers(features); // Render markers
@@ -186,7 +243,6 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
     }
   };
 
-
   const handleSearch = (query: string) => {
     setSearchQuery(query);
 
@@ -204,7 +260,27 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
   };
 
   const handleLogout = () => {
+    localStorage.removeItem('token');
     navigate('/login');
+  };
+
+  const sendLocationToBackend = async (latitude: number, longitude: number): Promise<void> => {
+    const data = { latitude, longitude };
+    try {
+      const response = await axios.post(
+        'http://localhost:8001/hospital/update_location/',
+        data, // Sending coordinates
+        {
+          headers: {
+            Authorization: `Token ${localStorage.getItem('token')}`,
+            'Content-Type': 'application/json',
+          },
+        }
+      );
+      console.log(response.data); // Log server response
+    } catch (error) {
+      console.error('Error updating location:', error); // Handle errors
+    }
   };
 
   useEffect(() => {
@@ -226,9 +302,13 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
 
       navigator.geolocation.getCurrentPosition(
         (position) => {
+          const { latitude, longitude } = position.coords;
           const userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
           userMarkerRef.current = L.marker(userLatLng, { icon: userIcon }).addTo(mapRef.current!);
           mapRef.current?.setView(userLatLng, 12);
+
+          // Send location to backend
+          sendLocationToBackend(latitude, longitude);
         },
         () => alert('Failed to retrieve user location.')
       );
@@ -236,6 +316,18 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
       fetchHospitals();
     }
   }, []);
+
+  useEffect(() => {
+    if (!mapRef.current) return; // Ensure the map is initialized before rendering markers
+
+    const filtered = showBookmarksOnly
+      ? hospitals.filter((hospital) => bookmarks.includes(hospital.properties.name))
+      : hospitals;
+
+    renderMarkers(filtered); // Render markers based on the filter
+    fitMapBounds(filtered);  // Fit map bounds dynamically based on filtered hospitals
+  }, [showBookmarksOnly, bookmarks]); // <-- Removed `hospitals` dependency!
+
 
   return (
     <div>
@@ -250,7 +342,12 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
         value={searchQuery}
         onChange={(e) => handleSearch(e.target.value)}
       />
-      <div ref={mapContainerRef} id="map" className="map-container"></div>
+      <input
+        type="checkbox"
+        checked={showBookmarksOnly}
+        onChange={(e) => setShowBookmarksOnly(e.target.checked)}
+      /> Show Only Bookmarks
+      <div ref={mapContainerRef} id="map" style={{ height: '600px' }}></div>
     </div>
   );
 };

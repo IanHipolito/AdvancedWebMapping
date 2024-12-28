@@ -37,7 +37,7 @@ const Signup: React.FC = () => {
             return;
         }
         try {
-            await Axios.post('/signup/', {
+            await Axios.post('http://localhost:8001/hospital/signup/', {
                 username: formData.username,
                 email: formData.email,
                 password: formData.password,
