@@ -81,6 +81,8 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
     iconUrl: 'https://cdn2.iconfinder.com/data/icons/map-and-navigation-12/48/53-512.png',
     iconSize: [25, 41],
     iconAnchor: [12, 41],
+    popupAnchor: [1, -34],
+    shadowSize: [41, 41]
   });
 
   const [bookmarks, setBookmarks] = useState<string[]>(() => {
@@ -189,6 +191,30 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
                     const routes = e.routes[0];
                     const distance = (routes.summary.totalDistance / 1000).toFixed(2);
                     const time = (routes.summary.totalTime / 60).toFixed(0);
+                    // Display a popup with route details and a close button
+                    const popupContent = `
+                      <div>
+                        <strong>Route Information</strong><br>
+                        Distance: ${distance} km<br>
+                        Time: ${time} min<br><br>
+                        <button id="close-route-popup">Close</button>
+                      </div>
+                    `;
+
+                    // Open popup on the hospital location
+                    const popup = L.popup()
+                      .setLatLng(hospitalLatLng)
+                      .setContent(popupContent)
+                      .openOn(mapRef.current!);
+
+                    // Add close button functionality
+                    document.getElementById('close-route-popup')?.addEventListener('click', () => {
+                      mapRef.current?.closePopup(); // Close the popup
+                      if (routingControlRef.current) {
+                        mapRef.current?.removeControl(routingControlRef.current); // Remove the route
+                        routingControlRef.current = null; // Clear reference
+                      }
+                    });
                   });
 
                   routingControlRef.current.on('routingerror', () => {
@@ -305,6 +331,12 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
           const { latitude, longitude } = position.coords;
           const userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
           userMarkerRef.current = L.marker(userLatLng, { icon: userIcon }).addTo(mapRef.current!);
+          const userCircle = L.circle(userLatLng, {
+            color: 'blue',       // Circle border color
+            fillColor: '#3a7bd5', // Fill color
+            fillOpacity: 0.2,    // Opacity
+            radius: 500          // Radius in meters
+          }).addTo(mapRef.current!);
           mapRef.current?.setView(userLatLng, 12);
 
           // Send location to backend
@@ -326,7 +358,7 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
 
     renderMarkers(filtered); // Render markers based on the filter
     fitMapBounds(filtered);  // Fit map bounds dynamically based on filtered hospitals
-  }, [showBookmarksOnly, bookmarks]); // <-- Removed `hospitals` dependency!
+  }, [showBookmarksOnly, bookmarks]);
 
 
   return (
@@ -342,11 +374,14 @@ const MapPage: React.FC<MapPageProps> = ({ updateLocationUrl }) => {
         value={searchQuery}
         onChange={(e) => handleSearch(e.target.value)}
       />
-      <input
-        type="checkbox"
-        checked={showBookmarksOnly}
-        onChange={(e) => setShowBookmarksOnly(e.target.checked)}
-      /> Show Only Bookmarks
+      <label className="bookmark-filter">
+        <input
+          type="checkbox"
+          checked={showBookmarksOnly}
+          onChange={(e) => setShowBookmarksOnly(e.target.checked)}
+        />
+        Show Only Bookmarks
+      </label>
       <div ref={mapContainerRef} id="map" style={{ height: '600px' }}></div>
     </div>
   );
