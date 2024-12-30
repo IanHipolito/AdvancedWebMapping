@@ -2,11 +2,13 @@ from django.urls import path
 from . import views
 from .views import HospitalListAPIView
 from django.http import JsonResponse
+from django.contrib import admin
 
 def test_view(request):
     return JsonResponse({"message": "This is a test view!"})
 
 urlpatterns = [
+    path('admin/', admin.site.urls),
     path('api/hospitals/', HospitalListAPIView.as_view(), name='hospital-list-api'),
     path('test/', test_view, name='test_view'),
     # path('api/', api_overview, name='api-overview'),

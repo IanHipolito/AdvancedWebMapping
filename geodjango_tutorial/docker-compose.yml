@@ -5,6 +5,9 @@ services:
             - 84:80
         volumes:
             - ./nginx/conf.d:/etc/ngnix/conf.d
+        depends_on:
+            - frontend
+            - awm_django_app
 
     pgadmin4:
         image: dpage/pgadmin4
@@ -17,7 +20,6 @@ services:
         #  - my_pgadmin4_data:/var/lib/postgresql/data
         depends_on:
             - postgis
-            - nginx
 
     postgis:
         image: kartoza/postgis:latest
@@ -36,9 +38,20 @@ services:
             - 8001:8001
         #build: .
         command: ["python", "manage.py", "runserver", "0.0.0.0:8001"]
+        restart: always
         volumes:
             - .:/app
         depends_on:
             - postgis
-            - nginx
-            - pgadmin4
+    
+    frontend:
+        image: ianhipolito659/frontend_image:latest
+        build:
+            context: ./frontend
+            dockerfile: dockerfile
+        ports:
+            - 3000:3000
+        stdin_open: true
+        tty: true
+        depends_on:
+            - awm_django_app

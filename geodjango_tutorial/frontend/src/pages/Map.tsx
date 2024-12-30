@@ -238,7 +238,7 @@ const MapPage: React.FC = () => {
   const fetchHospitals = async () => {
     setLoading(true);
     try {
-      const response = await Axios.get('/api/hospitals/');
+      const response = await Axios.get('https://c21436494.xyz/hospital/api/hospitals/');
       console.log('API Response:', response.data);
 
       if (response.data.type === "FeatureCollection") {
@@ -288,7 +288,7 @@ const MapPage: React.FC = () => {
     const data = { latitude, longitude };
     try {
       const response = await axios.post(
-        'http://localhost:8001/hospital/update_location/',
+        'https://c21436494.xyz/hospital/update_location/',
         data,
         {
           headers: {

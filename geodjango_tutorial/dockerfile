@@ -28,6 +28,11 @@ SHELL ["conda", "run", "-n", "awm_env", "/bin/bash", "-c"]
 RUN echo "conda activate awm_env" >> ~/.bashrc
 SHELL ["/bin/bash", "--login", "-c"]
 
+# Install pip-only dependencies
+RUN pip install django-rest-knox
+
+RUN pip install django-cors-headers
+
 # Copy the application code
 COPY . /app
 # Copy the wait-for-postgis.sh script 

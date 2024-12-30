@@ -14,7 +14,7 @@ const Login: React.FC = () => {
         e.preventDefault();
 
         try {
-            const response = await Axios.post('http://localhost:8001/hospital/login/', { username, password });
+            const response = await Axios.post('https://c21436494.xyz/hospital/login/', { username, password });
             console.log(response);
             const token = response.data.token;
         
