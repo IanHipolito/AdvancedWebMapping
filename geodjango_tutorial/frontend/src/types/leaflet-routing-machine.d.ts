@@ -5,7 +5,7 @@ declare module 'leaflet-routing-machine' {
           i: number,
           waypoint: Waypoint,
           n: number
-        ) => L.Marker | null; // Allow null to suppress markers
+        ) => L.Marker | null;
       }
     }
   }

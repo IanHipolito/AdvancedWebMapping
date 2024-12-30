@@ -24,5 +24,6 @@ class HospitalSerializer(serializers.Serializer):
         return {
             "name": obj.name,
             "address1": obj.address1,
-            "eircode": obj.eircode
+            "eircode": obj.eircode,
+            "subcategory": obj.subcategory
         }

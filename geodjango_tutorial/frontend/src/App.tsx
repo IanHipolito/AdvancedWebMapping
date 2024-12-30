@@ -13,7 +13,7 @@ const App: React.FC = () => {
         <Route path="/signup" element={<Signup />} />
         <Route
           path="/map"
-          element={<PrivateRoute element={<MapPage updateLocationUrl="/hospital/update_location/" />} />}
+          element={<PrivateRoute element={<MapPage />} />}
         />
       </Routes>
     </Router>

@@ -21,16 +21,21 @@ class HospitalListAPIView(APIView):
     permission_classes = [IsAuthenticated]  # Ensure token authentication
 
     def get(self, request, *args, **kwargs):
-        # Fetch hospital data
+        # Fetch subcategory filter from query parameters
+        subcategory_filter = request.GET.get('subcategory', None)
+
+        # Fetch hospitals and filter by subcategory if provided
         hospitals = Hospital.objects.all()
+        if subcategory_filter:
+            hospitals = hospitals.filter(subcategory=subcategory_filter)  # Filter&#8203;:contentReference[oaicite:1]{index=1}
+
         serializer = HospitalSerializer(hospitals, many=True)
 
-        # Wrap the features in a FeatureCollection
+        # Return GeoJSON format
         geojson_response = {
             "type": "FeatureCollection",
             "features": serializer.data
         }
-
         return Response(geojson_response)
 
 @api_view(['POST'])
