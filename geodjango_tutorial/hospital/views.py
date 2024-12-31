@@ -6,37 +6,35 @@ from rest_framework.decorators import api_view, permission_classes
 from rest_framework.permissions import AllowAny, IsAuthenticated
 from rest_framework.response import Response
 from rest_framework.exceptions import ValidationError
-from knox.auth import TokenAuthentication
 from knox.models import AuthToken
 from .models import Hospital, Profile, LocationHistory
-from rest_framework import generics
 from .serializers import HospitalSerializer
 from rest_framework.permissions import IsAuthenticated
-from rest_framework.views import APIView
 import logging
 from django.utils.timezone import now
 logger = logging.getLogger(__name__)
 
-class HospitalListAPIView(APIView):
-    permission_classes = [IsAuthenticated]  # Ensure token authentication
 
-    def get(self, request, *args, **kwargs):
-        # Fetch subcategory filter from query parameters
-        subcategory_filter = request.GET.get('subcategory', None)
+@api_view(['GET'])
+@permission_classes([AllowAny])
+def HospitalListAPIView(request):
+    """
+    Publicly accessible endpoint for listing hospitals.
+    Supports optional filtering by subcategory.
+    """
+    subcategory_filter = request.GET.get('subcategory', None)
 
-        # Fetch hospitals and filter by subcategory if provided
-        hospitals = Hospital.objects.all()
-        if subcategory_filter:
-            hospitals = hospitals.filter(subcategory=subcategory_filter)  # Filter&#8203;:contentReference[oaicite:1]{index=1}
+    hospitals = Hospital.objects.all()
+    if subcategory_filter:
+        hospitals = hospitals.filter(subcategory=subcategory_filter)
 
-        serializer = HospitalSerializer(hospitals, many=True)
+    serializer = HospitalSerializer(hospitals, many=True)
 
-        # Return GeoJSON format
-        geojson_response = {
-            "type": "FeatureCollection",
-            "features": serializer.data
-        }
-        return Response(geojson_response)
+    geojson_response = {
+        "type": "FeatureCollection",
+        "features": serializer.data
+    }
+    return Response(geojson_response)
 
 @api_view(['POST'])
 @permission_classes([AllowAny])
@@ -62,7 +60,7 @@ def logout_view(request):
     """
     Knox-based API endpoint for user logout.
     """
-    request._auth.delete()  # Delete the token used for authentication
+    request._auth.delete()
     return Response({"success": "Logged out successfully"}, status=200)
 
 
@@ -108,25 +106,6 @@ def user_info(request):
         "email": user.email,
     }, status=200)
 
-
-@api_view(['GET'])
-@permission_classes([AllowAny])
-def hospital_map_view(request):
-    """
-    API endpoint for fetching hospital points.
-    """
-    category = request.GET.get('category', 'all')
-    if category == 'all':
-        points = Hospital.objects.all()
-    else:
-        points = Hospital.objects.filter(category=category)
-
-    data = [
-        {"id": point.id, "name": point.name, "address": point.address1, "lat": point.point_y, "lon": point.point_x}
-        for point in points
-    ]
-    return Response(data, status=200)
-
 @api_view(['POST'])
 @permission_classes([IsAuthenticated])
 def update_location(request):
@@ -140,17 +119,14 @@ def update_location(request):
         return Response({"success": False, "error": "Missing coordinates"}, status=400)
 
     try:
-        # Ensure valid data types
         latitude = float(latitude)
         longitude = float(longitude)
 
-        # Update Profile with the latest location
         profile, _ = Profile.objects.get_or_create(user=request.user)
-        profile.location = Point(longitude, latitude)  # GeoDjango uses (longitude, latitude)
-        profile.updated_at = now()  # Update timestamp
+        profile.location = Point(longitude, latitude)
+        profile.updated_at = now()
         profile.save()
 
-        # Log location history
         LocationHistory.objects.create(
             user=request.user,
             location=Point(longitude, latitude),
