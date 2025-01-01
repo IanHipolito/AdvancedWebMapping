@@ -60,8 +60,11 @@ load.run()
 
 I then created a **dockerfile** and a **docker-compose.yml** file. The dockerfile is a script reponsible for giving instructions on building a docker image. The docker-compose.yml is used to define and run multi-container applications such as my django web application.
 
-### dockerfile:
+### dockerfile (backend):
 ![image](https://github.com/user-attachments/assets/dbb132af-8a97-4d48-b327-6a74b90ea8ce)
+
+### dockerfile (Frontend):
+![image](https://github.com/user-attachments/assets/693b786e-3019-47ca-b0cd-d5a6b1188577)
 
 This file provides the instructions to build a Docker image for the Django application. It specifies the base image, installs necessary dependencies, copies application files, and defines commands to run the app. The Dockerfile ensures a consistent environment for the Django application, including specific libraries and configurations for deployment.
 
@@ -76,6 +79,9 @@ I also created a file called **default.conf** which  contains the Nginx configur
 
 ### default.conf File:
 ![image](https://github.com/user-attachments/assets/dbfba627-a5b5-47cb-b77b-8029e835f25a)
+
+### frontend.conf File:
+![image](https://github.com/user-attachments/assets/d51585ae-a6fb-406f-b2e0-885ea22f5570)
 
 This configuration ensures that Nginx correctly serves your Django application and static assets, handling incoming requests efficiently.
 
