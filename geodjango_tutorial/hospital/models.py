@@ -7,6 +7,7 @@ from django.dispatch import receiver
 
 User = get_user_model()
 
+# Hospital model to store hospital data with location information
 class Hospital(models.Model):
     object_id = models.IntegerField()
     category = models.CharField(max_length=100)
@@ -24,7 +25,8 @@ class Hospital(models.Model):
 
     def __str__(self):
         return self.name
-    
+
+# Profile model to store user profile information
 class Profile(models.Model):
     user = models.OneToOneField(User, on_delete=models.CASCADE, related_name="hospital_profile")
     location = gis_models.PointField(geography=True, blank=True, null=True)
@@ -32,7 +34,8 @@ class Profile(models.Model):
 
     def __str__(self):
         return self.user.username
-    
+
+# LocationHistory model to store user location history
 class LocationHistory(models.Model):
     user = models.ForeignKey(User, on_delete=models.CASCADE)
     location = gis_models.PointField(geography=True)
@@ -41,6 +44,7 @@ class LocationHistory(models.Model):
     def __str__(self):
         return f"{self.user.username} - {self.timestamp}"
 
+# Signal to create a Profile when a new User is created
 @receiver(post_save, sender=User)
 def create_profile(sender, instance, created, **kwargs):
     """
@@ -49,7 +53,7 @@ def create_profile(sender, instance, created, **kwargs):
     if created:
         Profile.objects.create(user=instance)
 
-
+# Signal to save the Profile when the User is saved
 @receiver(post_save, sender=User)
 def save_profile(sender, instance, **kwargs):
     """

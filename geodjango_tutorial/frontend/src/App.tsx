@@ -5,6 +5,7 @@ import Signup from './pages/Signup';
 import MapPage from './pages/Map';
 import PrivateRoute from './pages/PrivateRoute';
 
+// App component with routes for login, signup, and map pages with private route protection for map page access
 const App: React.FC = () => {
   return (
     <Router>

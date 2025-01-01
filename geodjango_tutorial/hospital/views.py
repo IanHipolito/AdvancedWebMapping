@@ -14,7 +14,6 @@ import logging
 from django.utils.timezone import now
 logger = logging.getLogger(__name__)
 
-
 @api_view(['GET'])
 @permission_classes([AllowAny])
 def HospitalListAPIView(request):
@@ -24,12 +23,14 @@ def HospitalListAPIView(request):
     """
     subcategory_filter = request.GET.get('subcategory', None)
 
+    # Fetch all hospitals or filter by subcategory
     hospitals = Hospital.objects.all()
     if subcategory_filter:
         hospitals = hospitals.filter(subcategory=subcategory_filter)
 
     serializer = HospitalSerializer(hospitals, many=True)
 
+    # Convert to GeoJSON format
     geojson_response = {
         "type": "FeatureCollection",
         "features": serializer.data
@@ -46,6 +47,7 @@ def login_view(request):
     username = request.data.get('username')
     password = request.data.get('password')
 
+    # Authenticate user and generate token if successful login
     user = authenticate(username=username, password=password)
     if user:
         token = AuthToken.objects.create(user)[1]
@@ -76,12 +78,15 @@ def signup_view(request):
     password = data.get('password')
     confirm_password = data.get('confirm_password')
 
+    # Validate input data and create user if successful registration attempt
     if not password or not confirm_password:
         return Response({"error": "Password and confirmation are required"}, status=400)
 
+    # Check if passwords match
     if password != confirm_password:
         return Response({"error": "Passwords do not match"}, status=400)
 
+    # Validate password strength and create user if successful registration attempt
     try:
         validate_password(password)
         user = User.objects.create_user(username=username, email=email, password=password)
@@ -115,9 +120,11 @@ def update_location(request):
     latitude = request.data.get("latitude")
     longitude = request.data.get("longitude")
 
+    # Validate input data and update user location if successful attempt is made
     if not latitude or not longitude:
         return Response({"success": False, "error": "Missing coordinates"}, status=400)
 
+    # Update user location and log the history
     try:
         latitude = float(latitude)
         longitude = float(longitude)
@@ -127,6 +134,7 @@ def update_location(request):
         profile.updated_at = now()
         profile.save()
 
+        # Log the location history for the user
         LocationHistory.objects.create(
             user=request.user,
             location=Point(longitude, latitude),

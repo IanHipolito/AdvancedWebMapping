@@ -3,6 +3,7 @@ import { useNavigate } from 'react-router-dom';
 import Axios from '../services/Axios';
 import '../styles/stylesheet.css';
 
+// Signup page component
 interface AxiosError {
     message: string;
     response?: {
@@ -11,31 +12,34 @@ interface AxiosError {
     };
 }
 
-interface ErrorResponse {
-    error: string;
-}
-
+// Signup page component
 const Signup: React.FC = () => {
+    // State variables for form fields and error message
     const [formData, setFormData] = useState({
         username: '',
         email: '',
         password: '',
         confirm_password: '',
     });
+    // State variables for error and success messages
     const [error, setError] = useState('');
     const [success, setSuccess] = useState('');
     const navigate = useNavigate();
 
+    // Handle form field changes
     const handleChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         setFormData({ ...formData, [e.target.name]: e.target.value });
     };
 
+    // Handle form submission
     const handleSubmit = async (e: React.FormEvent) => {
         e.preventDefault();
+        // Check if passwords match
         if (formData.password !== formData.confirm_password) {
             setError('Passwords do not match.');
             return;
         }
+        // Send signup request to API
         try {
             await Axios.post('https://c21436494.xyz/hospital/signup/', {
                 username: formData.username,
@@ -43,6 +47,7 @@ const Signup: React.FC = () => {
                 password: formData.password,
                 confirm_password: formData.confirm_password,
             });
+            // Display success message and redirect to login page
             setSuccess('Registration successful! Redirecting...');
             setTimeout(() => navigate('/login'), 2000);
         } catch (error) {
@@ -54,6 +59,7 @@ const Signup: React.FC = () => {
         }
     };
 
+    // Render signup form
     return (
         <div className="auth-container">
             <form onSubmit={handleSubmit} className="auth-form">

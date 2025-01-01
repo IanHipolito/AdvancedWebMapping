@@ -12,8 +12,8 @@ class TestCORSMiddleware:
         allowed_origins = [
             "http://localhost:3000",  # React dev server
             "http://127.0.0.1:3000",  # Alternative local dev server
-            "http://localhost:8001",
-            "http://127.0.0.1:8001",
+            "http://localhost:8001",  # Django dev server
+            "http://127.0.0.1:8001",  # Alternative local dev server
             "https://c21436494.xyz",  # Add your production domain here
         ]
 

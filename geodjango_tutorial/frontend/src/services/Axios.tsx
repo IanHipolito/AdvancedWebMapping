@@ -2,13 +2,14 @@ import axios from 'axios';
 
 // Create Axios instance
 const Axios = axios.create({
-    baseURL: 'http://127.0.0.1:8001/hospital/', // API base URL
-    timeout: 10000, // Request timeout
+    baseURL: 'http://127.0.0.1:8001/hospital/',
+    timeout: 10000,
     headers: {
         'Content-Type': 'application/json',
         Accept: 'application/json',
     },
-    withCredentials: false, // Knox does NOT require CSRF cookies
+    // Knox does NOT require CSRF cookies
+    withCredentials: false,
 });
 
 // Add a request interceptor
@@ -22,14 +23,17 @@ Axios.interceptors.request.use(
             config.headers['Authorization'] = `Token ${token}`;
         }
 
-        return config; // Proceed with request
+        // Proceed with request
+        return config;
     },
-    (error) => Promise.reject(error) // Pass errors
+    // Handle request errors
+    (error) => Promise.reject(error)
 );
 
 // Handle errors in response
 Axios.interceptors.response.use(
-    (response) => response, // Pass successful responses
+    // Pass successful responses
+    (response) => response,
     (error) => {
         console.error('API Error:', error.response || error.message);
 
@@ -39,8 +43,8 @@ Axios.interceptors.response.use(
             localStorage.removeItem('token');
             window.location.href = '/login';
         }
-
-        return Promise.reject(error); // Pass errors further
+        // Pass errors further
+        return Promise.reject(error);
     }
 );
 

@@ -15,6 +15,7 @@ import Axios from '../services/Axios';
 import axios from 'axios';
 import '../styles/stylesheet.css';
 
+// Extend Leaflet Control namespace to include MiniMap
 declare module 'leaflet' {
   namespace Control {
     class MiniMap extends Control {
@@ -23,6 +24,7 @@ declare module 'leaflet' {
   }
 }
 
+// Hospital interface for API response data structure
 interface Hospital {
   type: string;
   geometry: {
@@ -37,7 +39,9 @@ interface Hospital {
   };
 }
 
+// Map page component
 const MapPage: React.FC = () => {
+  // State variables for map, hospitals, and filtered hospitals
   const mapRef = useRef<L.Map | null>(null);
   const mapContainerRef = useRef<HTMLDivElement | null>(null);
   const [hospitals, setHospitals] = useState<Hospital[]>([]);
@@ -51,6 +55,7 @@ const MapPage: React.FC = () => {
   const navigate = useNavigate();
   const [selectedSubcategory, setSelectedSubcategory] = useState<string>('');
 
+  // Custom marker icons
   const customIcon = L.icon({
     iconUrl: markerIcon,
     shadowUrl: markerShadow,
@@ -60,6 +65,7 @@ const MapPage: React.FC = () => {
     shadowSize: [41, 41],
   });
 
+  // User icon for geolocation
   const userIcon = L.icon({
     iconUrl: 'https://cdn2.iconfinder.com/data/icons/map-and-navigation-12/48/53-512.png',
     iconSize: [25, 41],
@@ -68,12 +74,15 @@ const MapPage: React.FC = () => {
     shadowSize: [41, 41]
   });
 
+  // State variable for bookmarks
   const [bookmarks, setBookmarks] = useState<string[]>(() => {
     const savedBookmarks = localStorage.getItem('bookmarks');
     return savedBookmarks ? JSON.parse(savedBookmarks) : [];
   });
 
+  // Toggle bookmark status for a hospital
   const toggleBookmark = (hospitalName: string) => {
+    // Update bookmarks in localStorage and state
     setBookmarks((prevBookmarks) => {
       const updatedBookmarks = prevBookmarks.includes(hospitalName)
         ? prevBookmarks.filter((name) => name !== hospitalName)
@@ -83,9 +92,12 @@ const MapPage: React.FC = () => {
     });
   };
 
+  // Fit map bounds to show all hospitals on the map view
   const fitMapBounds = (data: Hospital[]) => {
+    // Check if mapRef is initialized before proceeding with map operations
     if (!mapRef.current) return;
     const bounds = L.latLngBounds([]);
+    // Extend bounds for each hospital location
     data.forEach((hospital) => {
       const coordinates = hospital.geometry.coordinates;
       bounds.extend([coordinates[1], coordinates[0]]);
@@ -93,10 +105,13 @@ const MapPage: React.FC = () => {
     if (bounds.isValid()) mapRef.current.fitBounds(bounds, { padding: [20, 20] });
   };
 
+  // Filter hospitals by subcategory and bookmarks and update map markers accordingly
   const handleSubcategoryFilter = (subcategory: string) => {
+    // Normalize subcategory name for consistency
     const normalizedSubcategory = subcategory === "GeneralAcute" ? "General/Acute" : subcategory;
     setSelectedSubcategory(normalizedSubcategory);
 
+    // Filter hospitals based on subcategory and bookmarks
     const filtered = hospitals.filter((hospital) => {
       const matchesSubcategory =
         normalizedSubcategory === '' || hospital.properties.subcategory === normalizedSubcategory;
@@ -107,15 +122,19 @@ const MapPage: React.FC = () => {
       return matchesSubcategory && matchesBookmark;
     });
 
+    // Update filtered hospitals and map markers
     setFilteredHospitals(filtered);
     renderMarkers(filtered);
     fitMapBounds(filtered);
   };
 
-
+  // Render hospital markers on the map
   const renderMarkers = (data: Hospital[]) => {
+    // Check if mapRef is initialized before proceeding with map operations
     if (!mapRef.current) return;
+    // Clear existing markers before rendering new markers
     if (markersRef.current) markersRef.current.clearLayers();
+    // Initialize marker cluster group if not already initialized
     else markersRef.current = L.markerClusterGroup({
       animateAddingMarkers: true,
       disableClusteringAtZoom: 18,
@@ -125,15 +144,18 @@ const MapPage: React.FC = () => {
       animate: true,
     });
 
+    // Add markers for each hospital in the filtered data
     data.forEach((hospital) => {
       const coordinates = hospital.geometry.coordinates;
       const { name, address1, eircode, subcategory } = hospital.properties;
       const isBookmarked = bookmarks.includes(name);
 
+      // Create marker with custom icon and popup content
       const marker = L.marker([coordinates[1], coordinates[0]], {
         icon: isBookmarked ? customIcon : customIcon,
       });
 
+      // Create popup content with hospital details and action buttons
       const createPopupContent = () => `
       <div>
         <strong>${name}</strong><br>
@@ -149,9 +171,11 @@ const MapPage: React.FC = () => {
       marker.bindPopup(createPopupContent);
       markersRef.current?.addLayer(marker);
 
+      // Add event listeners for bookmark and route buttons in popup content on marker click event 
       marker.on('popupopen', () => {
         const bookmarkButton = document.getElementById(`bookmark-btn-${name.replace(/\s+/g, '-')}`);
 
+        // Toggle bookmark status on button click
         if (bookmarkButton) {
           bookmarkButton.addEventListener('click', () => {
             toggleBookmark(name);
@@ -160,23 +184,28 @@ const MapPage: React.FC = () => {
         }
       });
 
+      // Add event listener for route button in popup content on marker click event
       marker.on('popupopen', () => {
         const routeButton = document.getElementById(`route-btn-${name.replace(/\s+/g, '-')}`);
 
+        // Calculate route from user location to hospital on button click
         if (routeButton) {
           routeButton.addEventListener('click', () => {
+            // Check if user location is available before calculating route
             if (navigator.geolocation) {
               navigator.geolocation.getCurrentPosition(
                 (position) => {
                   const userLatLng = L.latLng(position.coords.latitude, position.coords.longitude);
                   const hospitalLatLng = L.latLng(coordinates[1], coordinates[0]);
 
+                  // Clear existing routing control before adding new route
                   if (routingControlRef.current) {
                     routingControlRef.current.getPlan().setWaypoints([]);
                     mapRef.current?.removeControl(routingControlRef.current);
                     routingControlRef.current = null;
                   }
 
+                  // Calculate route using Leaflet Routing Machine plugin
                   routingControlRef.current = L.Routing.control({
                     waypoints: [userLatLng, hospitalLatLng],
                     routeWhileDragging: false,
@@ -188,6 +217,7 @@ const MapPage: React.FC = () => {
                     })
                   } as L.Routing.RoutingControlOptions).addTo(mapRef.current!);
 
+                  // Add event listeners for route calculation success and error
                   routingControlRef.current.on('routesfound', (e: any) => {
                     const routes = e.routes[0];
                     const distance = (routes.summary.totalDistance / 1000).toFixed(2);
@@ -201,11 +231,13 @@ const MapPage: React.FC = () => {
                       </div>
                     `;
 
+                    // Display route information in popup content
                     const popup = L.popup()
                       .setLatLng(hospitalLatLng)
                       .setContent(popupContent)
                       .openOn(mapRef.current!);
 
+                    // Add event listener to close route popup on button click
                     document.getElementById('close-route-popup')?.addEventListener('click', () => {
                       mapRef.current?.closePopup();
                       if (routingControlRef.current) {
@@ -215,6 +247,7 @@ const MapPage: React.FC = () => {
                     });
                   });
 
+                  // Add event listener for route calculation error
                   routingControlRef.current.on('routingerror', () => {
                     alert('Failed to calculate route. Please try again.');
                   });
@@ -229,18 +262,25 @@ const MapPage: React.FC = () => {
         }
       });
 
+      // Add marker to marker cluster group
       markersRef.current?.addLayer(marker);
     });
 
+    // Add marker cluster group to map
     mapRef.current!.addLayer(markersRef.current!);
   };
 
+  // Fetch hospital data from API and update state variables
   const fetchHospitals = async () => {
+    // Set loading state to true before fetching data
     setLoading(true);
+    
     try {
+      // Fetch hospital data from API using Axios service and update state variables on success response
       const response = await Axios.get('https://c21436494.xyz/hospital/api/hospitals/');
       console.log('API Response:', response.data);
 
+      // Check if response data is in valid format before updating state variables and rendering markers on map view
       if (response.data.type === "FeatureCollection") {
         const features = response.data.features;
         setHospitals(features);
@@ -265,28 +305,34 @@ const MapPage: React.FC = () => {
     }
   };
 
+  // Handle search query input and filter hospitals based on search query
   const handleSearch = (query: string) => {
     setSearchQuery(query);
 
+    // Filter hospitals based on search query and update map markers
     const filtered = hospitals.filter((hospital) =>
       hospital.properties.name.toLowerCase().includes(query.toLowerCase()) ||
       hospital.properties.address1.toLowerCase().includes(query.toLowerCase()) ||
       hospital.properties.eircode.toLowerCase().includes(query.toLowerCase())
     );
 
+    // Update filtered hospitals and map markers
     setFilteredHospitals(filtered);
     renderMarkers(filtered);
     fitMapBounds(filtered);
   };
 
+  // Handle logout action and remove token from localStorage
   const handleLogout = () => {
     localStorage.removeItem('token');
     navigate('/login');
   };
 
+  // Send user location to backend for updating hospital location data in database
   const sendLocationToBackend = async (latitude: number, longitude: number): Promise<void> => {
     const data = { latitude, longitude };
     try {
+      // Send user location data to backend using Axios service and token
       const response = await axios.post(
         'https://c21436494.xyz/hospital/update_location/',
         data,
@@ -303,14 +349,18 @@ const MapPage: React.FC = () => {
     }
   };
 
+  // Initialize map and fetch hospital data on component mount and user location on successful geolocation request
   useEffect(() => {
+    // Check if mapRef is initialized before proceeding with map operations
     if (!mapRef.current && mapContainerRef.current) {
       mapRef.current = L.map(mapContainerRef.current).setView([53.3498, -6.2603], 10);
       const mainTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
         attribution: '&copy; OpenStreetMap contributors',
       });
+      // Add main tile layer to map view
       mainTileLayer.addTo(mapRef.current);
       const miniMapTileLayer = L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png');
+      // Add minimap control to map view
       new L.Control.MiniMap(miniMapTileLayer, {
         toggleDisplay: true,
         minimized: false,
@@ -320,6 +370,7 @@ const MapPage: React.FC = () => {
         zoomLevelOffset: -5,
       }).addTo(mapRef.current);
 
+      // Check if user location is available before fetching hospital data
       navigator.geolocation.getCurrentPosition(
         (position) => {
           const { latitude, longitude } = position.coords;
@@ -333,6 +384,7 @@ const MapPage: React.FC = () => {
           }).addTo(mapRef.current!);
           mapRef.current?.setView(userLatLng, 12);
 
+          // Send user location to backend for updating hospital location data
           sendLocationToBackend(latitude, longitude);
         },
         () => alert('Failed to retrieve user location.')
@@ -342,31 +394,37 @@ const MapPage: React.FC = () => {
     }
   }, []);
 
+  // Find closest hospital to user location based on subcategory filter
   const findClosestHospital = () => {
     if (!navigator.geolocation) {
       alert('Geolocation is not supported by your browser.');
       return;
     }
 
+    // Check if user location is available before finding closest hospital
     navigator.geolocation.getCurrentPosition(
       (position) => {
         const userLat = position.coords.latitude;
         const userLng = position.coords.longitude;
 
+        // Filter hospitals based on subcategory and bookmarks
         const filtered = filteredHospitals.filter(
           (hospital) =>
             selectedSubcategory === '' ||
             hospital.properties.subcategory === selectedSubcategory
         );
 
+        // Check if any hospitals are found in the selected subcategory
         if (filtered.length === 0) {
           alert('No hospitals found in this category.');
           return;
         }
 
+        // Find closest hospital to user location based on distance calculation
         let closestHospital: Hospital = null as unknown as Hospital;
         let shortestDistance = Infinity;
 
+        // Iterate over filtered hospitals to find closest hospital
         filtered.forEach((hospital) => {
           const [lng, lat] = hospital.geometry.coordinates;
           const distance = getDistance(userLat, userLng, lat, lng);
@@ -376,6 +434,7 @@ const MapPage: React.FC = () => {
           }
         });
 
+        // Display closest hospital location on map view
         if (closestHospital) {
           const [lng, lat] = closestHospital.geometry.coordinates;
           const hospitalLatLng = L.latLng(lat, lng);
@@ -393,39 +452,49 @@ const MapPage: React.FC = () => {
     );
   };
 
+  // Calculate distance between two coordinates using Haversine formula for spherical geometry calculation
   const getDistance = (lat1: number, lon1: number, lat2: number, lon2: number): number => {
+    // Convert degrees to radians for trigonometric calculations
     const toRad = (angle: number): number => (angle * Math.PI) / 180;
     const R = 6371;
     const dLat = toRad(lat2 - lat1);
     const dLon = toRad(lon2 - lon1);
+    // Haversine formula for spherical geometry calculation of distance between two points on Earth surface in kilometers
     const a =
       Math.sin(dLat / 2) * Math.sin(dLat / 2) +
       Math.cos(toRad(lat1)) *
       Math.cos(toRad(lat2)) *
       Math.sin(dLon / 2) *
       Math.sin(dLon / 2);
+    // Angular distance in radians between two points on Earth surface in kilometers
     const c = 2 * Math.atan2(Math.sqrt(a), Math.sqrt(1 - a));
     return R * c;
   };
 
+  // Update filtered hospitals and map markers based on subcategory and bookmark filters
   useEffect(() => {
+    // Check if mapRef is initialized before proceeding with map operations
     if (!mapRef.current) return;
 
+    // Filter hospitals based on subcategory and bookmarks
     const filtered = hospitals.filter((hospital) => {
       const matchesSubcategory =
         selectedSubcategory === '' || hospital.properties.subcategory === selectedSubcategory;
 
+      // Check if hospital is bookmarked before filtering
       const matchesBookmark =
         !showBookmarksOnly || bookmarks.includes(hospital.properties.name);
 
       return matchesSubcategory && matchesBookmark;
     });
 
+    // Update filtered hospitals and map markers
     setFilteredHospitals(filtered);
     renderMarkers(filtered);
     fitMapBounds(filtered);
   }, [showBookmarksOnly, bookmarks, selectedSubcategory]);
 
+  // Render map page with navigation bar, search bar, filter options, and map view
   return (
     <div>
       <nav className="navbar">
