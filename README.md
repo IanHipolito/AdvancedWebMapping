@@ -221,18 +221,6 @@ docker retart <container_id>
 
 ## Logout Functionality (brings user back to login page)
 
-## Django Admin Page Users (when a user signs up, they are stored in **Users** along with all the data and information they used to sign up with):
-![image](https://github.com/user-attachments/assets/300d373f-6073-4147-bc11-0d0ef1b49c6d)
-
-## Django Admin Page Hospital Spatial Data (where all the hospital data is stored, this is where I can create, modify and manpulate the hospital data):
-![image](https://github.com/user-attachments/assets/55acc9d6-c517-4884-ab7e-9a35de21ea47)
-
-## Django Admin Page Profiles With Current or Last Location:
-![image](https://github.com/user-attachments/assets/90bc195b-9ad7-455d-bea3-717ae7ceebd6)
-
-## Django Admin Page Location History of Users:
-![image](https://github.com/user-attachments/assets/3d11cfd4-7105-48e6-bee7-9bbc022382cd)
-
 # Conclusion
 Advanced Web Mapping CA2: This project successfully implements a full-stack web application to search and interact with hospital data anywhere in Ireland. The web application combines Django, React, Typescript and PostgreSQL with up-to-date mapping technologies, covering important functionalities such as user authentication, geolocation services, and route finding. The containerisation of the project using Docker and its deployment on AWS make it production-ready. The solution effectively serves health providers and users securely and scalably.
 
