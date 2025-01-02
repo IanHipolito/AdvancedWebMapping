@@ -21,10 +21,10 @@ In this readme I will discuss and break down of my advanced web mapping CA 2 pro
 * **User Location History Tracking:** This feature allows me to use Django admin backend tool to track users location history and current locations.
 
 # Tech Stack
-* Backend: Django with Django Templates to handle server-side logic.
+* Backend: Django with Django Rest Framework to handle user logins, registrations, updates and queries, and to handle server-side logic. Knox was implemented for token generation and authentication.
 * Database: PostgreSQL with PostGIS for storing and managing geospatial data.
 * Database Management: PgAdmin 4 for database management and monitoring.
-* Mapping: Leaflet JS and OpenStreetMap for displaying interactive maps with precise user location tracking.
+* Mapping: Leaflet JS and OpenStreetMap for displaying interactive maps with precise user location tracking, and OSRM API for route calculation.
 * Frontend: React, Typescript and CSS are used to create an interactive and user friendly interface.
 * Containerisation & Deployment: Docker for application containerisation and AWS for hosting.
 
@@ -220,9 +220,6 @@ docker retart <container_id>
 ![image](https://github.com/user-attachments/assets/339974f6-01cd-4dcc-a4aa-79a438a16437)
 
 ## Logout Functionality (brings user back to login page)
-
-## Django Admin Page:
-![image](https://github.com/user-attachments/assets/1f051558-8ccf-4da2-8c32-2e42725d22a6)
 
 ## Django Admin Page Users (when a user signs up, they are stored in **Users** along with all the data and information they used to sign up with):
 ![image](https://github.com/user-attachments/assets/300d373f-6073-4147-bc11-0d0ef1b49c6d)
